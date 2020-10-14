@@ -50,8 +50,7 @@ jobs:
         run: docker build . --file Dockerfile --tag $IMAGE_NAME
 
       - name: Log into GitHub Container Registry
-      # TODO: Create a PAT with `read:packages` and `write:packages` scopes and save it as an Actions secret `CR_PAT`
-        run: echo "${{ secrets.CR_PAT }}" | docker login https://yul.ocir.io -u 'ocisateam/oracleidentitycloudservice/andy.nguyen@oracle.com' --password-stdin
+        run: echo "${{ secrets.YUL_OCIR_AUTH_TOKEN }}" | docker login https://yul.ocir.io -u 'ocisateam/oracleidentitycloudservice/andy.nguyen@oracle.com' --password-stdin
 
       - name: Push image to OCI Container Registry
         run: |
