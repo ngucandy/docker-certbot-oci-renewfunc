@@ -17,29 +17,8 @@ env:
   IMAGE_NAME: renewfunc
 
 jobs:
-  # Run tests.
-  # See also https://docs.docker.com/docker-hub/builds/automated-testing/
-  test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Run tests
-        run: |
-          if [ -f docker-compose.test.yml ]; then
-            docker-compose --file docker-compose.test.yml build
-            docker-compose --file docker-compose.test.yml run sut
-          else
-            docker build . --file Dockerfile
-          fi
-
   # Push image to OCIR.
-  # See also https://docs.docker.com/docker-hub/builds/
   push:
-    # Ensure test job passes before pushing image.
-    needs: test
-
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
 
@@ -49,7 +28,7 @@ jobs:
       - name: Build image
         run: docker build . --file Dockerfile --tag $IMAGE_NAME
 
-      - name: Log into GitHub Container Registry
+      - name: Log into OCI Container Registry
         run: echo "${{ secrets.YUL_OCIR_AUTH_TOKEN }}" | docker login https://yul.ocir.io -u 'ocisateam/oracleidentitycloudservice/andy.nguyen@oracle.com' --password-stdin
 
       - name: Push image to OCI Container Registry
