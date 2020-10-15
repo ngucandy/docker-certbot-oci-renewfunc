@@ -30,5 +30,5 @@ logs_dir="$certbot_base_dir/logs"
 echo "** UPLOAD ARCHIVE TO OBJECT STORAGE **"
 echo
 certbot_archive="/tmp/certbot-$(date -Iminutes).tar.gz"
-tar -C $certbot_base_dir -czvf "$certbot_archive"
+tar -C $certbot_base_dir -czvf "$certbot_archive" .
 oci -d --auth resource_principal os object put -ns $CERTBOT_FN_OS_NS -bn $CERTBOT_FN_OS_BN --file "$certbot_archive"
