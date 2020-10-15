@@ -27,6 +27,8 @@ logs_dir="$certbot_base_dir/logs"
   --email "$CERTBOT_FN_EMAIL" \
   --test-cert
 
-echo "** DEBUG LOG **"
+echo "** UPLOAD ARCHIVE TO OBJECT STORAGE **"
 echo
-cat $logs_dir/letsencrypt.log
+certbot_archive="/tmp/certbot-$(date -Iminutes).tar.gz"
+tar -C $certbos_base_dir -czf "$certbot_archive"
+oci os object put -ns $CERTBOT_FN_OS_NS -bn $CERTBOT_FN_OS_BN --file "$certbot_archive"
