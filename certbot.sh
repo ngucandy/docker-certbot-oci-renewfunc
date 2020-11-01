@@ -5,14 +5,23 @@ set -euo pipefail
 
 echo "** CERTBOT **"
 echo
-echo "** STDIN DUMP **"
-/usr/bin/tee /tmp/input.txt
-echo
 
 certbot_base_dir="/tmp/certbot"
 config_dir="$certbot_base_dir/config"
 work_dir="$certbot_base_dir/work"
 logs_dir="$certbot_base_dir/logs"
+
+mkdir -p ${logs_dir}
+echo "** STDIN DUMP **"
+/usr/bin/tee ${logs_dir}/event.json
+echo
+
+#if [ -s /tmp/input.txt ]; then
+#  echo "** DOWNLOAD EXISTING ARCHIVE TO OBJECT STORAGE **"
+#  certbot_archive_old=$(python3 -c "import sys, json, re; print(re.sub('\.control$', '', json.load(sys.stdin)['data']['resourceName']))")
+#  oci --auth resource_principal os object get -ns $CERTBOT_FN_OS_NS -bn $CERTBOT_FN_OS_BN --name "${certbot_archive_old}" --file "/tmp/${certbot_archive_old}"
+#  tar -C /tmp -xzf "/tmp/${certbot_archive_old}"
+#fi
 
 /usr/local/bin/certbot certonly --manual --preferred-challenges=dns --agree-tos \
   --manual-auth-hook /auth.sh \
@@ -29,6 +38,10 @@ logs_dir="$certbot_base_dir/logs"
 
 echo "** UPLOAD ARCHIVE TO OBJECT STORAGE **"
 echo
-certbot_archive="/tmp/certbot-$(date -Iminutes).tar.gz"
-tar -C $certbot_base_dir -czf "$certbot_archive" .
+timestamp=$(date '+%Y%m%d-%H%M')
+certbot_archive="/tmp/${CERTBOT_FN_ARCHIVE_FILE_PREFIX}-${CERTBOT_FN_DOMAIN}-$timestamp.tar.gz"
+certbot_control="${certbot_archive}.control"
+tar -C /tmp -czf "$certbot_archive" certbot
 oci --auth resource_principal os object put -ns $CERTBOT_FN_OS_NS -bn $CERTBOT_FN_OS_BN --file "$certbot_archive"
+touch $certbot_control
+oci --auth resource_principal os object put -ns $CERTBOT_FN_OS_NS -bn $CERTBOT_FN_OS_BN --file "$certbot_control"
