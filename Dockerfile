@@ -1,19 +1,14 @@
-FROM python:3.8-slim
+FROM ngucandy/docker-oci-cli:latest
 
-LABEL maintainer="andy.nguyen@oracle.com"
+LABEL maintainer="anguyen@computer.org"
 
-RUN apt-get update \
- && apt-get -y upgrade \
- && apt-get -y install --no-install-recommends \
-      wget \
+RUN apt-get -y update \
+ && apt-get -y install --no-install-recommends wget \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
 ARG CERTBOT_VERSION
 ENV CERTBOT_VERSION=${CERTBOT_VERSION:-1.9.0}
-
-# OCI CLI
-RUN pip install --no-cache-dir oci-cli
 
 # Certbot -- based on https://hub.docker.com/r/certbot/certbot/dockerfile
 WORKDIR /opt/certbot
@@ -50,6 +45,7 @@ COPY cleanup.sh /cleanup.sh
 
 RUN chmod +x /certbot.sh /auth.sh /cleanup.sh
 
-CMD ["/certbot.sh"]
+# copy stdout to stderr for logging
+CMD "/certbot.sh | /usr/bin/tee /dev/stderr"
 
 ENTRYPOINT ["/hotwrap"]
