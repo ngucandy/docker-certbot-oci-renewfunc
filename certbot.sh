@@ -21,6 +21,7 @@ if oci --auth resource_principal os object head -ns $CERTBOT_FN_OS_NS -bn $CERTB
 else
   echo "** NO EXISTING CERTBOT ARCHIVE **"
   echo "** REQUESTING NEW CERTIFICATE **"
+  certbot_opts=($CERTBOT_FN_NEWCERT_OPTS)
   /usr/local/bin/certbot certonly --manual --preferred-challenges=dns --agree-tos \
     --manual-auth-hook /auth.sh \
     --manual-cleanup-hook /cleanup.sh \
@@ -32,7 +33,7 @@ else
     --non-interactive \
     --domain "*.$CERTBOT_FN_DOMAIN" \
     --email "$CERTBOT_FN_EMAIL" \
-    --test-cert
+    "${certbot_opts[@]}"
 fi
 
 echo "** UPLOADING CERTBOT ARCHIVE **"
@@ -42,3 +43,4 @@ echo "** UPLOADING CERTBOT CONTROL FILE **"
 certbot_control="${certbot_archive}.control"
 touch "/tmp/$certbot_control"
 oci --auth resource_principal os object put -ns $CERTBOT_FN_OS_NS -bn $CERTBOT_FN_OS_BN --file "/tmp/$certbot_control" --force
+rm -rf "$certbot_base_dir"
